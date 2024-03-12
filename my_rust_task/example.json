@@ -1,0 +1,16 @@
+{
+    "servers": [
+    {
+    "socket_address": "127.0.0.1:3000",
+    "response": "5 cats"
+    },
+    {
+    "socket_address": "127.0.0.1:3001",
+    "response": "16 chickens"
+    },
+    {
+    "socket_address": "127.0.0.1:3002",
+    "response": [51, 32, 98, 117, 110, 110, 105, 101, 115]
+    }
+    ]
+    }
