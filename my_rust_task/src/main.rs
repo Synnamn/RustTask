@@ -16,7 +16,7 @@ struct Server {
 }
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut file = File::open("example.json")?;
+    let mut file = File::open("../example.json")?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
     let config: Config = serde_json::from_str(&contents)?;
