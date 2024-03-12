@@ -1,0 +1,26 @@
+# Ignore compiled binaries
+/target/
+
+# Ignore Cargo.lock file
+Cargo.lock
+
+# Ignore build artifacts
+*.rs.bk
+
+# Ignore generated documentation
+/doc/
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore local configuration files
+*.env
+
+# Ignore temporary files
+*.tmp
+*.bak
+
+# Ignore system files
+.DS_Store
+Thumbs.db
