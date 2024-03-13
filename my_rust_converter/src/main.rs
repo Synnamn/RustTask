@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::fs;
-use std::io::{self, Read};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Server {
@@ -9,7 +8,7 @@ struct Server {
     response: Value,
 }
 
-fn main() -> io::Result<()> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Read input from file
     let input_json = fs::read_to_string("../example.json")?;
     let parsed_json: Value = serde_json::from_str(&input_json)?;
@@ -17,48 +16,36 @@ fn main() -> io::Result<()> {
     // Process input JSON
     let servers: Vec<Server> = parsed_json["servers"]
         .as_array()
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "Invalid input JSON"))?
+        .ok_or("Invalid input JSON")?
         .iter()
         .map(|server| {
             let socket_address = server["socket_address"]
                 .as_str()
                 .unwrap_or_default()
                 .to_string();
-            let response = server["response"].clone();
-            let response = match response {
-                Value::String(s) => {
-                    let mut obj = serde_json::Map::new();
-                    for (i, c) in s.chars().enumerate() {
-                        obj.insert(i.to_string(), json!(c.to_string()));
-                    }
-                    Value::Object(obj)
-                }
-                Value::Array(arr) => {
-                    let mut obj = serde_json::Map::new();
-                    for (i, byte) in arr.iter().enumerate() {
-                        if let Some(c) = byte.as_u64() {
-                            obj.insert(i.to_string(), json!(c as u8 as char));
-                        }
-                    }
-                    Value::Object(obj)
-                }
-                _ => Value::Null,
+            let response = match &server["response"] {
+                Value::String(s) => s.chars().map(|c| c.to_string()).collect(),
+                Value::Array(arr) => arr
+                    .iter()
+                    .filter_map(|v| v.as_u64().map(|c| c as u8 as char).map(|c| c.to_string()))
+                    .collect(),
+                _ => Vec::new(),
             };
             Server {
                 socket_address,
-                response,
+                response: json!(response),
             }
         })
         .collect();
 
     // Create output JSON
-    let output_json: Value = json!({
+    let output_json = json!({
         "servers": servers.iter().map(|server| {
             json!({
-                "socket_address": server.socket_address,
-                "response": server.response
+                "socket_address": &server.socket_address,
+                "response": &server.response
             })
-        }).collect::<Vec<Value>>()
+        }).collect::<Vec<_>>()
     });
 
     // Print output to console
