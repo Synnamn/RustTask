@@ -43,3 +43,10 @@ Thumbs.db
 /.idea/
 *.iml
 *.code-workspace
+
+# Additional build artifacts
+/build/
+*.exe
+*.dll
+*.so
+*.dylib
