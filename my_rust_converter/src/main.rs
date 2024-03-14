@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::fs;
-use std::io::{self, Read};
+use std::io::{self};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Server {
@@ -11,7 +11,7 @@ struct Server {
 
 fn main() -> io::Result<()> {
     // Read input from file
-    let input_json = fs::read_to_string("../example.json")?;
+    let input_json = fs::read_to_string("../input.json")?;
     let parsed_json: Value = serde_json::from_str(&input_json)?;
 
     // Process input JSON
@@ -61,8 +61,11 @@ fn main() -> io::Result<()> {
         }).collect::<Vec<Value>>()
     });
 
-    // Print output to console
-    println!("{}", serde_json::to_string_pretty(&output_json)?);
+    // Serialize output JSON to a string
+    let output_json_string = serde_json::to_string_pretty(&output_json)?;
+
+    // Write output JSON string to file
+    fs::write("../output.json", output_json_string)?;
 
     Ok(())
 }
