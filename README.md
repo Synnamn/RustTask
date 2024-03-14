@@ -13,5 +13,5 @@ enter "cargo run -- " followed by the addresses into terminal to get the respons
 Task 2:
 
 my_rust_converter is the converter for task 2.
-It takes the JSON file as input and returns the output in terminal
-when entering "cargo run".
+It takes the input JSON file as input and returns the output in the output JSON file
+when entering "cargo run"

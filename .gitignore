@@ -50,3 +50,20 @@ Thumbs.db
 *.dll
 *.so
 *.dylib
+
+# Debug directories
+/debug/
+/debug_info/
+
+# Logs
+/logs/
+
+# Editor-specific files
+.vscode/
+*.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Configuration files
+.config/

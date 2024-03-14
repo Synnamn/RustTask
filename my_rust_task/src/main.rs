@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::fs::File;
 use std::io::Read;
 use tokio::io::AsyncWriteExt;
@@ -12,7 +13,7 @@ struct Config {
 #[derive(Debug, Serialize, Deserialize)]
 struct Server {
     socket_address: String,
-    response: serde_json::Value,
+    response: Value,
 }
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -24,10 +25,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     for server in config.servers {
         let socket_address = server.socket_address.clone();
         let response = match server.response {
-            serde_json::Value::String(s) => s.into_bytes(),
-            serde_json::Value::Array(arr) => {
-                arr.iter().map(|v| v.as_u64().unwrap() as u8).collect()
-            }
+            Value::String(s) => s.into_bytes(),
+            Value::Array(arr) => arr.iter().map(|v| v.as_u64().unwrap() as u8).collect(),
             _ => continue,
         };
 
