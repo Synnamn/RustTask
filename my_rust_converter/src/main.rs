@@ -24,7 +24,7 @@ enum Value {
 
 fn main() -> io::Result<()> {
     // Read input from file
-    let input_json = fs::read_to_string("../example.json")?;
+    let input_json = fs::read_to_string("../input.json")?;
     let parsed_json: serde_json::Value = serde_json::from_str(&input_json)?;
 
     // Process input JSON
@@ -39,27 +39,27 @@ fn main() -> io::Result<()> {
                 .to_string();
             let response = server["response"].clone();
             let response = match response {
-                serde_json::Value::String(s) => {
-                    s.chars()
-                        .enumerate()
-                        .map(|(i, c)| ResponseEntry {
-                            index: i,
-                            value: Value::Char(c),
-                        })
-                        .collect()
-                }
-                serde_json::Value::Array(arr) => {
-                    arr.iter()
-                        .enumerate()
-                        .filter_map(|(i, v)| v.as_u64().map(|num| {
+                serde_json::Value::String(s) => s
+                    .chars()
+                    .enumerate()
+                    .map(|(i, c)| ResponseEntry {
+                        index: i,
+                        value: Value::Char(c),
+                    })
+                    .collect(),
+                serde_json::Value::Array(arr) => arr
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(i, v)| {
+                        v.as_u64().map(|num| {
                             let ch = (num as u8) as char;
                             ResponseEntry {
                                 index: i,
                                 value: Value::Char(ch),
                             }
-                        }))
-                        .collect()
-                }
+                        })
+                    })
+                    .collect(),
                 _ => Vec::new(),
             };
             Server {
@@ -75,14 +75,17 @@ fn main() -> io::Result<()> {
     output.push_str("  \"servers\": [\n");
     for (i, server) in servers.iter().enumerate() {
         output.push_str("    {\n");
-        output.push_str(&format!("      \"socket_address\": \"{}\",\n", server.socket_address));
+        output.push_str(&format!(
+            "      \"socket_address\": \"{}\",\n",
+            server.socket_address
+        ));
         output.push_str("      \"response\": {\n");
         for entry in &server.response {
             match &entry.value {
                 Value::Char(ch) => {
                     if entry.index < &server.response.len() - 1 {
-                    output.push_str(&format!("        \"{}\": \"{}\",\n", entry.index, ch));}
-                    else {
+                        output.push_str(&format!("        \"{}\": \"{}\",\n", entry.index, ch));
+                    } else {
                         output.push_str(&format!("        \"{}\": \"{}\"\n", entry.index, ch));
                     }
                 }
