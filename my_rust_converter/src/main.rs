@@ -1,18 +1,31 @@
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use std::collections::BTreeMap;
 use std::fs;
-use std::io::{self};
+use std::io;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Server {
     socket_address: String,
-    response: Value,
+    response: Vec<ResponseEntry>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct ResponseEntry {
+    index: usize,
+    value: Value,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(untagged)]
+enum Value {
+    Integer(u64),
+    Char(char),
 }
 
 fn main() -> io::Result<()> {
     // Read input from file
-    let input_json = fs::read_to_string("../input.json")?;
-    let parsed_json: Value = serde_json::from_str(&input_json)?;
+    let input_json = fs::read_to_string("../example.json")?;
+    let parsed_json: serde_json::Value = serde_json::from_str(&input_json)?;
 
     // Process input JSON
     let servers: Vec<Server> = parsed_json["servers"]
@@ -26,23 +39,28 @@ fn main() -> io::Result<()> {
                 .to_string();
             let response = server["response"].clone();
             let response = match response {
-                Value::String(s) => {
-                    let mut obj = serde_json::Map::new();
-                    for (i, c) in s.chars().enumerate() {
-                        obj.insert(i.to_string(), json!(c.to_string()));
-                    }
-                    Value::Object(obj)
+                serde_json::Value::String(s) => {
+                    s.chars()
+                        .enumerate()
+                        .map(|(i, c)| ResponseEntry {
+                            index: i,
+                            value: Value::Char(c),
+                        })
+                        .collect()
                 }
-                Value::Array(arr) => {
-                    let mut obj = serde_json::Map::new();
-                    for (i, byte) in arr.iter().enumerate() {
-                        if let Some(c) = byte.as_u64() {
-                            obj.insert(i.to_string(), json!(c as u8 as char));
-                        }
-                    }
-                    Value::Object(obj)
+                serde_json::Value::Array(arr) => {
+                    arr.iter()
+                        .enumerate()
+                        .filter_map(|(i, v)| v.as_u64().map(|num| {
+                            let ch = (num as u8) as char;
+                            ResponseEntry {
+                                index: i,
+                                value: Value::Char(ch),
+                            }
+                        }))
+                        .collect()
                 }
-                _ => Value::Null,
+                _ => Vec::new(),
             };
             Server {
                 socket_address,
@@ -52,20 +70,37 @@ fn main() -> io::Result<()> {
         .collect();
 
     // Create output JSON
-    let output_json: Value = json!({
-        "servers": servers.iter().map(|server| {
-            json!({
-                "socket_address": server.socket_address,
-                "response": server.response
-            })
-        }).collect::<Vec<Value>>()
-    });
+    let mut output = String::new();
+    output.push_str("{\n");
+    output.push_str("  \"servers\": [\n");
+    for (i, server) in servers.iter().enumerate() {
+        output.push_str("    {\n");
+        output.push_str(&format!("      \"socket_address\": \"{}\",\n", server.socket_address));
+        output.push_str("      \"response\": {\n");
+        for entry in &server.response {
+            match &entry.value {
+                Value::Char(ch) => {
+                    if entry.index < &server.response.len() - 1 {
+                    output.push_str(&format!("        \"{}\": \"{}\",\n", entry.index, ch));}
+                    else {
+                        output.push_str(&format!("        \"{}\": \"{}\"\n", entry.index, ch));
+                    }
+                }
+                _ => {}
+            }
+        }
+        output.push_str("      }\n");
+        if i < servers.len() - 1 {
+            output.push_str("    },\n");
+        } else {
+            output.push_str("    }\n");
+        }
+    }
+    output.push_str("  ]\n");
+    output.push_str("}\n");
 
-    // Serialize output JSON to a string
-    let output_json_string = serde_json::to_string_pretty(&output_json)?;
-
-    // Write output JSON string to file
-    fs::write("../output.json", output_json_string)?;
+    // Write output JSON to file
+    fs::write("../output.json", output)?;
 
     Ok(())
 }
