@@ -19,15 +19,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .enumerate()
         .map(|(i, &b)| {
             if b.is_ascii_digit() {
-                format!("\"{}\": {},\n", i, b as char)
+                format!("\n\"{}\": {}", i, b as char)
             } else {
-                format!("\"{}\": \"{}\",\n", i, b as char)
+                format!("\n\"{}\": \"{}\"", i, b as char)
             }
         })
         .collect::<Vec<_>>()
-        .join(", ");
+        .join(",");
 
-    println!("{{ {} }}", parsed_response);
+    println!("{{ {} \n}}", parsed_response);
 
     Ok(())
 }
